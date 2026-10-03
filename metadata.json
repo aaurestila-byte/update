@@ -1,0 +1,8 @@
+{
+  "name": "Inpulse 300 MK2 DJ",
+  "description": "Two-deck DJ app for the Hercules DJControl Inpulse 300 MK2 with Cross DJ interface, offline audio synthesis, beatmatching phase meter, scratch jog wheels, and mixer.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

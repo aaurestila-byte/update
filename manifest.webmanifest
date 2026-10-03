@@ -1,0 +1,15 @@
+{
+  "name": "Inpulse 300 MK2 DJ",
+  "short_name": "Inpulse DJ",
+  "description": "Two-deck DJ app for the Hercules DJControl Inpulse 300 MK2",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#15151b",
+  "theme_color": "#15151b",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

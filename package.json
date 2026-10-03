@@ -1,0 +1,16 @@
+{
+  "name": "inpulse-300-mk2-dj",
+  "version": "1.0.0",
+  "description": "Two-deck DJ app for the Hercules DJControl Inpulse 300 MK2",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "node -e \"console.log('Build completed')\"",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "adm-zip": "^0.6.1",
+    "archiver": "^8.0.0",
+    "express": "^4.21.2"
+  }
+}

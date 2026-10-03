@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Inpulse 300 MK2 DJ</title>
+  <meta name="description" content="Two-deck DJ app for the Hercules DJControl Inpulse 300 MK2 with Cross DJ interface, offline audio synthesis, beatmatching phase meter, scratch jog wheels, and mixer.">
+  <meta property="og:title" content="Inpulse 300 MK2 DJ">
+  <meta property="og:description" content="Two-deck DJ app for the Hercules DJControl Inpulse 300 MK2 with Cross DJ interface, offline audio synthesis, beatmatching phase meter, scratch jog wheels, and mixer.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#090a0f">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="logo-badge">
+        <span>CROSS</span><span class="x-cross">DJ</span>
+        <span style="font-size:10px;color:var(--text-dim);font-weight:700;margin-left:4px">PRO</span>
+      </div>
+      <span class="controller-badge" id="controller-status">MIDI Ready (Inpulse 300 MK2)</span>
+      <span class="offline-pill">● 100% OFFLINE</span>
+    </div>
+
+    <div class="header-center-tools">
+      <button class="rec-btn" id="btn-record-mix">
+        <span class="rec-dot"></span> ● REC MIX
+      </button>
+    </div>
+
+    <div class="header-actions">
+      <button class="hdr-btn" id="btn-install-pwa" title="Install App on Device">
+        📲 Install App
+      </button>
+      <a href="/api/download-zip" class="hdr-btn" download="inpulse-300-mk2-cross-dj.zip" title="Download standalone offline ZIP project" style="text-decoration:none">
+        💾 Download ZIP
+      </a>
+      <button class="hdr-btn primary" id="btn-connect-midi">
+        🔌 Connect Controller
+      </button>
+    </div>
+  </header>
+
+  <!-- PARALLEL SCROLLING BEAT WAVEFORMS (CROSS DJ SIGNATURE) -->
+  <section class="parallel-wave-strip">
+    <canvas id="parallel-waves" class="parallel-wave-canvas" width="1200" height="64"></canvas>
+    <div class="phase-meter-container">
+      <span style="font-size:9px;color:var(--text-muted);font-weight:700">BEAT SYNC PHASE</span>
+      <div class="phase-meter-bar">
+        <div class="phase-marker" id="phase-marker" style="left:50%"></div>
+      </div>
+      <span style="font-size:9px;color:var(--text-muted);font-weight:700">MATCH</span>
+    </div>
+  </section>
+
+  <!-- MAIN DJ CONSOLE -->
+  <main class="main-console">
+
+    <!-- DECK A (ORANGE) -->
+    <section class="deck-card deck-a">
+      <div class="deck-header">
+        <span class="deck-label-badge">DECK A</span>
+        <div class="deck-meta-info">
+          <div class="deck-track-title" id="track-name-A">Neon Drive (House 124)</div>
+          <div class="deck-track-artist" id="track-artist-A">Cross DJ Offline Engine</div>
+        </div>
+        <div class="deck-time-display">
+          <div class="time-large" id="time-large-A">0:00.0</div>
+          <div class="time-sub" id="time-sub-A">-0:00.0</div>
+        </div>
+        <div class="bpm-pitch-hud">
+          <div class="bpm-box">
+            <span class="lbl">BPM</span>
+            <span class="val" id="bpm-val-A">124.0</span>
+          </div>
+          <div class="pitch-box">
+            <span class="lbl">PITCH</span>
+            <span class="val" id="pitch-val-A">+0.0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- OVERVIEW WAVEFORM -->
+      <div class="overview-wave-wrap">
+        <canvas id="overview-wf-A" class="overview-canvas" width="600" height="52"></canvas>
+        <div class="wf-bend-highlight" id="bend-highlight-A"></div>
+      </div>
+
+      <!-- PLATTER & TEMPO -->
+      <div class="deck-platter-section">
+        <div class="jog-platter-container">
+          <div class="jog-platter" id="jog-platter-A">
+            <div class="vinyl-grooves"></div>
+            <div class="jog-center-disc">
+              <div class="jog-needle-indicator" id="jog-needle-A"></div>
+              <div class="jog-center-label">DECK A</div>
+              <div class="jog-touch-label">SCRATCH</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tempo-column">
+          <span class="tempo-range-pill" id="tempo-range-A" title="Cycle tempo range">±16%</span>
+          <div class="vertical-slider-wrap">
+            <input type="range" id="tempo-slider-A" min="0" max="100" value="50" data-d="A" data-p="tempo" aria-label="Deck A Tempo">
+          </div>
+          <div class="tempo-nudge-btns">
+            <button class="nudge-btn" id="nudge-minus-A" title="Nudge backward">-</button>
+            <button class="nudge-btn" id="nudge-plus-A" title="Nudge forward">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSPORT & SYNC -->
+      <div class="transport-row">
+        <button class="btn-transport btn-cue" id="btn-cue-A">
+          <span>◆ CUE</span>
+        </button>
+        <button class="btn-transport btn-play" id="btn-play-A">
+          <span>▶ PLAY</span>
+        </button>
+        <button class="btn-transport btn-sync" id="btn-sync-A">
+          <span>⚡ SYNC</span>
+        </button>
+        <button class="btn-keylock active" id="keylock-A" title="Key Lock / Master Tempo">
+          KEY LOCK
+        </button>
+      </div>
+
+      <!-- LOOP BAR -->
+      <div class="loop-bar">
+        <span style="font-weight:800;color:var(--text-dim);font-size:10px">LOOP</span>
+        <div class="loop-btns-group">
+          <button class="loop-btn" id="loop-in-A">IN</button>
+          <button class="loop-btn" id="loop-out-A">OUT</button>
+          <button class="loop-btn" id="loop-active-A">4 BEATS</button>
+          <button class="loop-btn" id="loop-half-A">1/2x</button>
+          <button class="loop-btn" id="loop-double-A">2x</button>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE PADS -->
+      <div class="performance-pads-wrap">
+        <div class="pad-mode-tabs">
+          <button class="pad-tab active" data-deck-tab="A" data-mode="hotcue">HOT CUE</button>
+          <button class="pad-tab" data-deck-tab="A" data-mode="roll">LOOP ROLL</button>
+          <button class="pad-tab" data-deck-tab="A" data-mode="sampler">SAMPLER</button>
+          <button class="pad-tab" data-deck-tab="A" data-mode="fx">FX UNIT</button>
+        </div>
+        <div class="pads-grid" id="pads-grid-A">
+          <button class="pad-btn" data-deck="A" data-pad="0">1</button>
+          <button class="pad-btn" data-deck="A" data-pad="1">2</button>
+          <button class="pad-btn" data-deck="A" data-pad="2">3</button>
+          <button class="pad-btn" data-deck="A" data-pad="3">4</button>
+          <button class="pad-btn" data-deck="A" data-pad="4">5</button>
+          <button class="pad-btn" data-deck="A" data-pad="5">6</button>
+          <button class="pad-btn" data-deck="A" data-pad="6">7</button>
+          <button class="pad-btn" data-deck="A" data-pad="7">8</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER MIXER (CROSS DJ STYLE) -->
+    <section class="mixer-card">
+      <div class="mixer-header-row">
+        <span class="mixer-title">CROSS MIXER</span>
+        <div class="master-vol-group">
+          <label>MASTER</label>
+          <input type="range" id="master-vol" min="0" max="100" value="85" style="width:80px;height:14px;accent-color:#fff">
+        </div>
+      </div>
+
+      <!-- DUAL CHANNEL STRIPS -->
+      <div class="channels-container">
+        <!-- CHANNEL A -->
+        <div class="channel-strip ch-a">
+          <span class="ch-tag">CH 1</span>
+
+          <!-- GAIN -->
+          <div class="knob-row">
+            <div class="knob-label"><span>GAIN</span></div>
+            <div class="knob-slider-wrap">
+              <input type="range" min="0" max="100" value="50" data-d="A" data-p="gain" aria-label="Channel A Gain">
+            </div>
+          </div>
+
+          <!-- EQ HIGH -->
+          <div class="knob-row">
+            <div class="knob-label"><span>HI</span><button class="kill-btn" id="kill-hi-A">KILL</button></div>
+            <div class="knob-slider-wrap">
+              <input type="range" min="0" max="100" value="50" data-d="A" data-p="hi" aria-label="Channel A High">
+            </div>
+          </div>
+
+          <!-- EQ MID -->
+          <div class="knob-row">
+            <div class="knob-label"><span>MID</span><button class="kill-btn" id="kill-mid-A">KILL</button></div>
+            <div class="knob-slider-wrap">
+              <input type="range" min="0" max="100" value="50" data-d="A" data-p="mi" aria-label="Channel A Mid">
+            </div>
+          </div>
+
+          <!-- EQ LOW -->
+          <div class="knob-row">
+            <div class="knob-label"><span>LOW</span><button class="kill-btn" id="kill-low-A">KILL</button></div>
+            <div class="knob-slider-wrap">
+              <input type="range" min="0" max="100" value="50" data-d="A" data-p="lo" aria-label="Channel A Low">
+            </div>
+          </div>
+
+          <!-- COLOR FILTER -->
+          <div class="knob-row">
+            <div class="knob-label"><span>FILTER</span></div>
+            <div class="knob-slider-wrap">
+              <input type="range" min="0" max="100" value="50" data-d="A" data-p="fl" aria-label="Channel A Filter">
+            </div>
+          </div>
+
+          <!-- FADER & STEREO VU METER -->
+          <div class="fader-and-meter-wrap">
+            <div class="ch-fader-wrap">
+              <input type="range" min="0" max="100" value="85" data-d="A" data-p="vol" aria-label="Channel A Volume">
+            </div>
+            <div class="vu-meter" id="vu-meter-A">
+              <div class="vu-led red"></div>
+              <div class="vu-led amber"></div>
+              <div class="vu-led green"></div>
+              <div class="vu-led green"></div>
+              <div class="vu-led green"></div>
+              <div class="vu-led green"></div>
+              <div class="vu-led green"></div>
+              <div class="vu-led green"></div>
+            </div>
+          </div>
+
+          <button class="pfl-btn" id="pfl-btn-A">🎧 CUE</button>
+        </div>
+
+        <!-- CHANNEL B -->
+        <div class="channel-strip ch-b">
+          <span class="ch-tag">CH 2</span>
+
+          <!-- GAIN -->
+          <div class="knob-row">
+            <div class="knob-label"><span>GAIN</span></div>
+            <div class="knob-slider-wrap">
+              <input type="range" min="0" max="100" value="50" data-d="B" data-p="gain" aria-label="Channel B Gain">
+            </div>
+          </div>
+
+          <!-- EQ HIGH -->
+          <div class="knob-row">
+            <div class="knob-label"><span>HI</span><button class="kill-btn" id="kill-hi-B">KILL</button></div>
+            <div class="knob-slider-wrap">
+              <input type="range" min="0" max="100" value="50" data-d="B" data-p="hi" aria-label="Channel B High">
+            </div>
+          </div>
+
+          <!-- EQ MID -->
+          <div class="knob-row">
+            <div class="knob-label"><span>MID</span><button class="kill-btn" id="kill-mid-B">KILL</button></div>
+            <div class="knob-slider-wrap">
+              <input type="range" min="0" max="100" value="50" data-d="B" data-p="mi" aria-label="Channel B Mid">
+            </div>
+          </div>
+
+          <!-- EQ LOW -->
+          <div class="knob-row">
+            <div class="knob-label"><span>LOW</span><button class="kill-btn" id="kill-low-B">KILL</button></div>
+            <div class="knob-slider-wrap">
+              <input type="range" min="0" max="100" value="50" data-d="B" data-p="lo" aria-label="Channel B Low">
+            </div>
+          </div>
+
+          <!-- COLOR FILTER -->
+          <div class="knob-row">
+            <div class="knob-label"><span>FILTER</span></div>
+            <div class="knob-slider-wrap">
+              <input type="range" min="0" max="100" value="50" data-d="B" data-p="fl" aria-label="Channel B Filter">
+            </div>
+          </div>
+
+          <!-- FADER & STEREO VU METER -->
+          <div class="fader-and-meter-wrap">
+            <div class="ch-fader-wrap">
+              <input type="range" min="0" max="100" value="85" data-d="B" data-p="vol" aria-label="Channel B Volume">
+            </div>
+            <div class="vu-meter" id="vu-meter-B">
+              <div class="vu-led red"></div>
+              <div class="vu-led amber"></div>
+              <div class="vu-led green"></div>
+              <div class="vu-led green"></div>
+              <div class="vu-led green"></div>
+              <div class="vu-led green"></div>
+              <div class="vu-led green"></div>
+              <div class="vu-led green"></div>
+            </div>
+          </div>
+
+          <button class="pfl-btn" id="pfl-btn-B">🎧 CUE</button>
+        </div>
+      </div>
+
+      <!-- CROSSFADER -->
+      <div class="crossfader-section">
+        <div class="xfade-top-bar">
+          <span>CROSSFADER</span>
+          <div class="curve-selector">
+            <span class="curve-opt active" data-curve="smooth">SMOOTH</span>
+            <span class="curve-opt" data-curve="sharp">SHARP</span>
+            <span class="curve-opt" data-curve="cut">CUT</span>
+          </div>
+        </div>
+        <input type="range" id="crossfader" class="crossfader-input" min="0" max="100" value="50" aria-label="Crossfader">
+      </div>
+    </section>
+
+    <!-- DECK B (CYAN) -->
+    <section class="deck-card deck-b">
+      <div class="deck-header">
+        <span class="deck-label-badge">DECK B</span>
+        <div class="deck-meta-info">
+          <div class="deck-track-title" id="track-name-B">Cyber Pulse (Techno 130)</div>
+          <div class="deck-track-artist" id="track-artist-B">Cross DJ Offline Engine</div>
+        </div>
+        <div class="deck-time-display">
+          <div class="time-large" id="time-large-B">0:00.0</div>
+          <div class="time-sub" id="time-sub-B">-0:00.0</div>
+        </div>
+        <div class="bpm-pitch-hud">
+          <div class="bpm-box">
+            <span class="lbl">BPM</span>
+            <span class="val" id="bpm-val-B">130.0</span>
+          </div>
+          <div class="pitch-box">
+            <span class="lbl">PITCH</span>
+            <span class="val" id="pitch-val-B">+0.0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- OVERVIEW WAVEFORM -->
+      <div class="overview-wave-wrap">
+        <canvas id="overview-wf-B" class="overview-canvas" width="600" height="52"></canvas>
+        <div class="wf-bend-highlight" id="bend-highlight-B"></div>
+      </div>
+
+      <!-- PLATTER & TEMPO -->
+      <div class="deck-platter-section">
+        <div class="jog-platter-container">
+          <div class="jog-platter" id="jog-platter-B">
+            <div class="vinyl-grooves"></div>
+            <div class="jog-center-disc">
+              <div class="jog-needle-indicator" id="jog-needle-B"></div>
+              <div class="jog-center-label">DECK B</div>
+              <div class="jog-touch-label">SCRATCH</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tempo-column">
+          <span class="tempo-range-pill" id="tempo-range-B" title="Cycle tempo range">±16%</span>
+          <div class="vertical-slider-wrap">
+            <input type="range" id="tempo-slider-B" min="0" max="100" value="50" data-d="B" data-p="tempo" aria-label="Deck B Tempo">
+          </div>
+          <div class="tempo-nudge-btns">
+            <button class="nudge-btn" id="nudge-minus-B" title="Nudge backward">-</button>
+            <button class="nudge-btn" id="nudge-plus-B" title="Nudge forward">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSPORT & SYNC -->
+      <div class="transport-row">
+        <button class="btn-transport btn-cue" id="btn-cue-B">
+          <span>◆ CUE</span>
+        </button>
+        <button class="btn-transport btn-play" id="btn-play-B">
+          <span>▶ PLAY</span>
+        </button>
+        <button class="btn-transport btn-sync" id="btn-sync-B">
+          <span>⚡ SYNC</span>
+        </button>
+        <button class="btn-keylock active" id="keylock-B" title="Key Lock / Master Tempo">
+          KEY LOCK
+        </button>
+      </div>
+
+      <!-- LOOP BAR -->
+      <div class="loop-bar">
+        <span style="font-weight:800;color:var(--text-dim);font-size:10px">LOOP</span>
+        <div class="loop-btns-group">
+          <button class="loop-btn" id="loop-in-B">IN</button>
+          <button class="loop-btn" id="loop-out-B">OUT</button>
+          <button class="loop-btn" id="loop-active-B">4 BEATS</button>
+          <button class="loop-btn" id="loop-half-B">1/2x</button>
+          <button class="loop-btn" id="loop-double-B">2x</button>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE PADS -->
+      <div class="performance-pads-wrap">
+        <div class="pad-mode-tabs">
+          <button class="pad-tab active" data-deck-tab="B" data-mode="hotcue">HOT CUE</button>
+          <button class="pad-tab" data-deck-tab="B" data-mode="roll">LOOP ROLL</button>
+          <button class="pad-tab" data-deck-tab="B" data-mode="sampler">SAMPLER</button>
+          <button class="pad-tab" data-deck-tab="B" data-mode="fx">FX UNIT</button>
+        </div>
+        <div class="pads-grid" id="pads-grid-B">
+          <button class="pad-btn" data-deck="B" data-pad="0">1</button>
+          <button class="pad-btn" data-deck="B" data-pad="1">2</button>
+          <button class="pad-btn" data-deck="B" data-pad="2">3</button>
+          <button class="pad-btn" data-deck="B" data-pad="3">4</button>
+          <button class="pad-btn" data-deck="B" data-pad="4">5</button>
+          <button class="pad-btn" data-deck="B" data-pad="5">6</button>
+          <button class="pad-btn" data-deck="B" data-pad="6">7</button>
+          <button class="pad-btn" data-deck="B" data-pad="7">8</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM DRAWER: CRATE, OFFLINE LIBRARY & RECORDINGS -->
+  <section class="bottom-drawer">
+    <div class="drawer-tabs">
+      <button class="tab-btn active" data-tab="demos">⚡ Offline Demo Beats</button>
+      <button class="tab-btn" data-tab="local">📁 Load Local Audio Files</button>
+      <button class="tab-btn" data-tab="recordings">🔴 Saved Mixes (<span id="rec-count">0</span>)</button>
+      <button class="tab-btn" data-tab="sampler">🎛️ Sampler Bank</button>
+      <button class="tab-btn" data-tab="download">💾 Download App</button>
+      <label style="margin-left:auto;font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="inv-tempo"> Invert Tempo Faders
+      </label>
+    </div>
+
+    <!-- TAB 1: OFFLINE DEMO TRACKS -->
+    <div class="tab-content active" id="tab-demos">
+      <div class="demo-tracks-grid">
+        <div class="demo-track-card">
+          <div class="demo-track-info">
+            <h4>Neon Groove (House)</h4>
+            <p>124.0 BPM • 4/4 Punchy Bass & Groove</p>
+          </div>
+          <div class="load-btn-group">
+            <button class="btn-load btn-load-a" data-genre="house" data-target="A">Deck A</button>
+            <button class="btn-load btn-load-b" data-genre="house" data-target="B">Deck B</button>
+          </div>
+        </div>
+
+        <div class="demo-track-card">
+          <div class="demo-track-info">
+            <h4>Cyber Pulse (Techno)</h4>
+            <p>130.0 BPM • Acid Synth & Rumble Kick</p>
+          </div>
+          <div class="load-btn-group">
+            <button class="btn-load btn-load-a" data-genre="techno" data-target="A">Deck A</button>
+            <button class="btn-load btn-load-b" data-genre="techno" data-target="B">Deck B</button>
+          </div>
+        </div>
+
+        <div class="demo-track-card">
+          <div class="demo-track-info">
+            <h4>Gravity Rush (DnB)</h4>
+            <p>174.0 BPM • Fast Breakbeat & Reese Bass</p>
+          </div>
+          <div class="load-btn-group">
+            <button class="btn-load btn-load-a" data-genre="dnb" data-target="A">Deck A</button>
+            <button class="btn-load btn-load-b" data-genre="dnb" data-target="B">Deck B</button>
+          </div>
+        </div>
+
+        <div class="demo-track-card">
+          <div class="demo-track-info">
+            <h4>Sunset Chill (Hip-Hop)</h4>
+            <p>95.0 BPM • Boom-Bap Swing & Warm Rhodes</p>
+          </div>
+          <div class="load-btn-group">
+            <button class="btn-load btn-load-a" data-genre="hiphop" data-target="A">Deck A</button>
+            <button class="btn-load btn-load-b" data-genre="hiphop" data-target="B">Deck B</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: LOCAL FILES -->
+    <div class="tab-content" id="tab-local">
+      <input type="file" id="audio-file-input" accept="audio/*" multiple hidden>
+      <div class="upload-drop-zone" id="upload-drop-zone">
+        <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px">Drop MP3, WAV, FLAC, M4A or OGG files here</p>
+        <p style="font-size:12px;color:var(--text-dim)">or click anywhere in this box to browse local files on your device (works 100% offline)</p>
+      </div>
+    </div>
+
+    <!-- TAB 3: RECORDINGS -->
+    <div class="tab-content" id="tab-recordings">
+      <div class="recordings-list" id="recordings-list">
+        <p style="color:var(--text-muted);font-size:12px">No mixes recorded yet. Tap "● REC MIX" in the header to record your live mix and download it offline.</p>
+      </div>
+    </div>
+
+    <!-- TAB 4: SAMPLER BANK -->
+    <div class="tab-content" id="tab-sampler">
+      <div class="pads-grid" style="grid-template-columns:repeat(8,1fr);margin-top:4px">
+        <button class="pad-btn" data-sm="0">HORN</button>
+        <button class="pad-btn" data-sm="1">808 SUB</button>
+        <button class="pad-btn" data-sm="2">LASER</button>
+        <button class="pad-btn" data-sm="3">SCRATCH</button>
+        <button class="pad-btn" data-sm="4">CLAP</button>
+        <button class="pad-btn" data-sm="5">CHIME</button>
+        <button class="pad-btn" data-sm="6">IMPACT</button>
+        <button class="pad-btn" data-sm="7">SWEEP</button>
+      </div>
+    </div>
+
+    <!-- TAB 5: DOWNLOAD APP -->
+    <div class="tab-content" id="tab-download">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;padding:6px 0">
+        <!-- 1-Click ZIP Download -->
+        <div style="background:#141724;border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:22px">💾</span>
+            <div>
+              <h3 style="font-size:14px;font-weight:800;color:#fff">Download Standalone ZIP</h3>
+              <p style="font-size:11px;color:var(--text-dim)">Complete source code package ready to run on any computer offline</p>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text-dim);line-height:1.4">
+            Contains all HTML, CSS, JavaScript, icons, audio synthesis engine, and server files. Double-click <code>index.html</code> in Chrome/Edge or run <code>npm start</code>.
+          </p>
+          <a href="/api/download-zip" download="inpulse-300-mk2-cross-dj.zip" class="hdr-btn primary" style="justify-content:center;text-decoration:none;padding:10px;font-size:13px;margin-top:auto">
+            ⬇️ Download Full ZIP (Offline Bundle)
+          </a>
+        </div>
+
+        <!-- PWA Installation -->
+        <div style="background:#141724;border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:22px">📲</span>
+            <div>
+              <h3 style="font-size:14px;font-weight:800;color:#fff">Install as Desktop / Mobile App</h3>
+              <p style="font-size:11px;color:var(--text-dim)">PWA installation for Windows, Mac, Linux, Android & iOS</p>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text-dim);line-height:1.4">
+            Installs as a native standalone window with desktop/home screen shortcut. Works 100% offline with full hardware Web MIDI & Web Audio support.
+          </p>
+          <button class="hdr-btn" id="btn-tab-install-pwa" style="justify-content:center;padding:10px;font-size:13px;margin-top:auto;background:#252b42;color:#fff;border-color:var(--deck-b)">
+            📱 Install App to Device
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER: MIDI ACTIVITY LOG -->
+  <footer class="midi-status-footer">
+    <span id="midi-log-text">MIDI: Controller ready. Connect Hercules DJControl Inpulse 300 MK2 via USB.</span>
+    <span>Cross DJ Pro Audio Engine v2.0 • Offline PWA</span>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
